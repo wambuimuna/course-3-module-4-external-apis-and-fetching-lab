@@ -1,12 +1,16 @@
-if (typeof document !== "undefined") {
-
 const stateInput = document.getElementById("state-input");
-const getAlertsButton = document.getElementById("get-alerts");
-const alertsContainer = document.getElementById("alerts-container");
+const fetchButton = document.getElementById("fetch-alerts");
+const alertsDisplay = document.getElementById("alerts-display");
 const errorMessage = document.getElementById("error-message");
 
+fetchButton.addEventListener("click", async () => {
 
-async function fetchWeatherAlerts(state) {
+  const state = stateInput.value.trim();
+
+  if (!state) {
+    errorMessage.textContent = "Please enter a state abbreviation";
+    return;
+  }
 
   try {
 
@@ -20,63 +24,25 @@ async function fetchWeatherAlerts(state) {
 
     const data = await response.json();
 
-    displayAlerts(data);
+    alertsDisplay.innerHTML = "";
+
+    const summary = document.createElement("h3");
+    summary.textContent = `${data.title}: ${data.features.length}`;
+    alertsDisplay.appendChild(summary);
+
+    data.features.forEach(alert => {
+      const p = document.createElement("p");
+      p.textContent = alert.properties.headline;
+      alertsDisplay.appendChild(p);
+    });
 
     errorMessage.textContent = "";
+    errorMessage.classList.add("hidden");
+    stateInput.value = "";
 
-  }
-
-  catch (error) {
-
+  } catch (error) {
     errorMessage.textContent = error.message;
-
+    errorMessage.classList.remove("hidden");
   }
-
-}
-
-
-function displayAlerts(data) {
-
-  alertsContainer.innerHTML = "";
-
-  const summary = document.createElement("h3");
-
-  summary.textContent =
-    `${data.title}: ${data.features.length}`;
-
-  alertsContainer.appendChild(summary);
-
-
-  data.features.forEach(alert => {
-
-    const alertItem = document.createElement("p");
-
-    alertItem.textContent =
-      alert.properties.headline;
-
-    alertsContainer.appendChild(alertItem);
-
-  });
-
-}
-
-
-getAlertsButton.addEventListener("click", () => {
-
-  const state = stateInput.value.trim();
-
-  if (!state) {
-
-    errorMessage.textContent =
-      "Please enter a state abbreviation";
-
-    return;
-
-  }
-
-  fetchWeatherAlerts(state);
-
-  stateInput.value = "";
 
 });
-}
